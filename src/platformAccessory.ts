@@ -1,141 +1,157 @@
-import { Service, PlatformAccessory, CharacteristicValue } from 'homebridge';
+import { PlatformAccessory, Logger } from 'homebridge';
+import { LgEnerVuHomebridgePlatform } from './platform';
+import { LgEnerVuApi } from './Api/webApi';
+import { batteryNstatus, runningDataPoint} from './Api/interface';
 
-import { ExampleHomebridgePlatform } from './platform';
+type nestedByType<ObjectType extends object, T> =
+{[Key in keyof ObjectType & (string | number)]//: ObjectType[Key] extends any[] ? never
+: ObjectType[Key] extends object
+? `${Key}.${nestedByType<ObjectType[Key], T> extends infer U extends string ? U : never}`
+: ObjectType[Key] extends T
+? `${Key}`
+: never
+}[keyof ObjectType & (string | number)];
 
 /**
  * Platform Accessory
  * An instance of this class is created for each accessory your platform registers
  * Each accessory may expose multiple services of different service types.
  */
-export class ExamplePlatformAccessory {
-  private service: Service;
+export class LgEnerVuPlatformAccessory {
 
-  /**
-   * These are just used to create a working example
-   * You should implement your own code to track the state of your accessory
-   */
-  private exampleStates = {
-    On: false,
-    Brightness: 100,
-  };
+  public api: LgEnerVuApi;
+  public log: Logger;
 
   constructor(
-    private readonly platform: ExampleHomebridgePlatform,
+    public readonly platform: LgEnerVuHomebridgePlatform,
     private readonly accessory: PlatformAccessory,
+    api: LgEnerVuApi,
   ) {
+    this.api = api;
+    this.log = this.platform.log;
 
     // set accessory information
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
-      .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Default-Manufacturer')
-      .setCharacteristic(this.platform.Characteristic.Model, 'Default-Model')
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, 'Default-Serial');
+      .setCharacteristic(this.platform.Characteristic.Manufacturer, 'LG');
 
-    // get the LightBulb service if it exists, otherwise create a new LightBulb service
-    // you can create multiple services for each accessory
-    this.service = this.accessory.getService(this.platform.Service.Lightbulb) || this.accessory.addService(this.platform.Service.Lightbulb);
+    if (this.api.systemInfo !== undefined){
+      this.accessory.getService(this.platform.Service.AccessoryInformation)!
+        .setCharacteristic(this.platform.Characteristic.Model, this.api.systemInfo.systemName)
+        .setCharacteristic(this.platform.Characteristic.SerialNumber, this.api.systemInfo.systemSerial)
+        .setCharacteristic(this.platform.Characteristic.HardwareFinish, 'PCS H/W Ver.: ' + this.api.systemInfo.PmsHW)
+        .setCharacteristic(this.platform.Characteristic.HardwareRevision, ' PMS H/W Ver.: ' + this.api.systemInfo.PcsHW)
+        .setCharacteristic(this.platform.Characteristic.FirmwareRevision, 'PCS S/W Ver.: ' + this.api.systemInfo.PmsSW)
+        .setCharacteristic(this.platform.Characteristic.SoftwareRevision, 'PMS S/W Ver.: ' + this.api.systemInfo.PcsSW);
+    }
+    //add services based on config
+    if (this.api.config.gridPower){
+      const gridPowerService = this.accessory.getService('gridPower') ||
+        this.accessory.addService(this.platform.Service.LightSensor, 'gridPower', 'gridPower');
+      gridPowerService.setCharacteristic(this.platform.Characteristic.Name, 'gridPower');
+      gridPowerService.getCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel)
+        .onGet(this.lightSensorBounds(this.getWebApiDataByType<number>('gridPower').bind(this)));
 
-    // set the service name, this is what is displayed as the default name on the Home app
-    // in this example we are using the name we stored in the `accessory.context` in the `discoverDevices` method.
-    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.exampleDisplayName);
+      const gridPowerBuyService = this.accessory.getService('gridPowerBuy') ||
+      this.accessory.addService(this.platform.Service.Switch, 'gridPowerBuy', 'gridPowerBuy');
+      gridPowerBuyService.setCharacteristic(this.platform.Characteristic.Name, 'gridPowerBuy');
+      gridPowerBuyService.getCharacteristic(this.platform.Characteristic.On)
+        .onGet(this.getWebApiDataByType<boolean>('flow.gridBuy').bind(this));
+      const gridPowerSellService = this.accessory.getService('gridPowerSell') ||
+      this.accessory.addService(this.platform.Service.Switch, 'gridPowerSell', 'gridPowerSell');
+      gridPowerSellService.setCharacteristic(this.platform.Characteristic.Name, 'gridPowerSell');
+      gridPowerSellService.getCharacteristic(this.platform.Characteristic.On)
+        // ignoring flow.gridSellDischarging for this property
+        .onGet(this.getWebApiDataByType<boolean>('flow.gridSellPv').bind(this));
+    }
 
-    // each service must implement at-minimum the "required characteristics" for the given service type
-    // see https://developers.homebridge.io/#/service/Lightbulb
+    if (this.api.config.batterySoc){
+      const batterySocService = this.accessory.getService('batterySoc') ||
+        this.accessory.addService(this.platform.Service.Battery, 'batterySoc', 'batterySoc');
+      batterySocService.setCharacteristic(this.platform.Characteristic.Name, 'batterySoc');
+      batterySocService.getCharacteristic(this.platform.Characteristic.StatusLowBattery)
+        // don't trigger battery low warning
+        .onGet(() => this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL);
+      batterySocService.getCharacteristic(this.platform.Characteristic.BatteryLevel)
+        .onGet(() => this.getWebApiDataByType<number>('battery.soc').bind(this)());
 
-    // register handlers for the On/Off Characteristic
-    this.service.getCharacteristic(this.platform.Characteristic.On)
-      .onSet(this.setOn.bind(this))                // SET - bind to the `setOn` method below
-      .onGet(this.getOn.bind(this));               // GET - bind to the `getOn` method below
+      const batterySocAsLightService = this.accessory.getService('batterySocAsLight') ||
+        this.accessory.addService(this.platform.Service.LightSensor, 'batterySocAsLight', 'batterySocAsLight');
+      batterySocAsLightService.setCharacteristic(this.platform.Characteristic.Name, 'batterySocAsLight');
+      batterySocAsLightService.getCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel)
+        .onGet(this.lightSensorBounds(this.getWebApiDataByType<number>('battery.soc').bind(this)));
+    }
 
-    // register handlers for the Brightness Characteristic
-    this.service.getCharacteristic(this.platform.Characteristic.Brightness)
-      .onSet(this.setBrightness.bind(this));       // SET - bind to the 'setBrightness` method below
+    if (this.api.config.loadPower){
+      const loadPowerService = this.accessory.getService('loadPower') ||
+        this.accessory.addService(this.platform.Service.LightSensor, 'loadPower', 'loadPower');
+      loadPowerService.setCharacteristic(this.platform.Characteristic.Name, 'loadPower');
+      loadPowerService.getCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel)
+        .onGet(this.lightSensorBounds(this.getWebApiDataByType<number>('loadPower').bind(this)));
+    }
+    if (this.api.config.pvPower){
+      const pvPowerService = this.accessory.getService('pvPower') ||
+        this.accessory.addService(this.platform.Service.LightSensor, 'pvPower', 'pvPower');
+      pvPowerService.setCharacteristic(this.platform.Characteristic.Name, 'pvPower');
+      pvPowerService.getCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel)
+        .onGet(this.lightSensorBounds(this.getWebApiDataByType<number>('pvPower').bind(this)));
+    }
 
-    /**
-     * Creating multiple services of the same type.
-     *
-     * To avoid "Cannot add a Service with the same UUID another Service without also defining a unique 'subtype' property." error,
-     * when creating multiple services of the same type, you need to use the following syntax to specify a name and subtype id:
-     * this.accessory.getService('NAME') || this.accessory.addService(this.platform.Service.Lightbulb, 'NAME', 'USER_DEFINED_SUBTYPE_ID');
-     *
-     * The USER_DEFINED_SUBTYPE must be unique to the platform accessory (if you platform exposes multiple accessories, each accessory
-     * can use the same sub type id.)
-     */
+    if (this.api.config.batteryPower){
+      const batteryPowerService = this.accessory.getService('batteryPower') ||
+        this.accessory.addService(this.platform.Service.LightSensor, 'batteryPower', 'batteryPower');
+      batteryPowerService.setCharacteristic(this.platform.Characteristic.Name, 'batteryPower');
+      batteryPowerService.getCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel)
+        .onGet(this.lightSensorBounds(this.getWebApiDataByType<number>('battery.power').bind(this)));
 
-    // Example: add two "motion sensor" services to the accessory
-    const motionSensorOneService = this.accessory.getService('Motion Sensor One Name') ||
-      this.accessory.addService(this.platform.Service.MotionSensor, 'Motion Sensor One Name', 'YourUniqueIdentifier-1');
+      const batteryChargingService = this.accessory.getService('batteryCharging') ||
+      this.accessory.addService(this.platform.Service.Switch, 'batteryCharging', 'batteryCharging');
+      batteryChargingService.setCharacteristic(this.platform.Characteristic.Name, 'batteryCharging');
+      batteryChargingService.getCharacteristic(this.platform.Characteristic.On)
+        .onGet(() => batteryNstatus.charging === this.getWebApiDataByType<number>('battery.nStatus').bind(this)());
+      const batteryDischargingService = this.accessory.getService('batteryDischarging') ||
+      this.accessory.addService(this.platform.Service.Switch, 'batteryDischarging', 'batteryDischarging');
+      batteryDischargingService.setCharacteristic(this.platform.Characteristic.Name, 'batteryDischarging');
+      batteryDischargingService.getCharacteristic(this.platform.Characteristic.On)
+        .onGet(() => batteryNstatus.discharging === this.getWebApiDataByType<number>('battery.nStatus').bind(this)());
+    }
 
-    const motionSensorTwoService = this.accessory.getService('Motion Sensor Two Name') ||
-      this.accessory.addService(this.platform.Service.MotionSensor, 'Motion Sensor Two Name', 'YourUniqueIdentifier-2');
-
-    /**
-     * Updating characteristics values asynchronously.
-     *
-     * Example showing how to update the state of a Characteristic asynchronously instead
-     * of using the `on('get')` handlers.
-     * Here we change update the motion sensor trigger states on and off every 10 seconds
-     * the `updateCharacteristic` method.
-     *
-     */
-    let motionDetected = false;
-    setInterval(() => {
-      // EXAMPLE - inverse the trigger
-      motionDetected = !motionDetected;
-
-      // push the new value to HomeKit
-      motionSensorOneService.updateCharacteristic(this.platform.Characteristic.MotionDetected, motionDetected);
-      motionSensorTwoService.updateCharacteristic(this.platform.Characteristic.MotionDetected, !motionDetected);
-
-      this.platform.log.debug('Triggering motionSensorOneService:', motionDetected);
-      this.platform.log.debug('Triggering motionSensorTwoService:', !motionDetected);
-    }, 10000);
+    if (this.api.config.updateMotionSensor){
+      const updateMotionSensorService = this.accessory.getService('updateMotionSensor') ||
+        this.accessory.addService(this.platform.Service.MotionSensor, 'updateMotionSensor', 'updateMotionSensor');
+      api.on('dataUpdate', () => {
+        this.log.debug('Triggering motion sensor on data update');
+        updateMotionSensorService.updateCharacteristic(this.platform.Characteristic.MotionDetected, true);
+        setTimeout(() => {
+          updateMotionSensorService.updateCharacteristic(this.platform.Characteristic.MotionDetected, false);
+        }, 5000);
+      });
+    }
   }
 
-  /**
-   * Handle "SET" requests from HomeKit
-   * These are sent when the user changes the state of an accessory, for example, turning on a Light bulb.
-   */
-  async setOn(value: CharacteristicValue) {
-    // implement your own code to turn your device on/off
-    this.exampleStates.On = value as boolean;
+  getWebApiDataByType<T>(property: nestedByType<runningDataPoint, T>): () => T{
+    return function(this: LgEnerVuPlatformAccessory): T{
+      if (this.api.state < 2){
+        this.log.info(`Data for ${property} not ready.`);
+        throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+      }
 
-    this.platform.log.debug('Set Characteristic On ->', value);
+      this.log.debug(`Reading ${property}`);
+      const keys = property.split('.');
+      let result = this.api.data;
+      try {
+        for (const key of keys) {
+          result = result[key];
+        }
+        return result as T;
+
+      } catch (error) {
+        this.log.error(`Encountered unreadable API data: ${error}`);
+        throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+      }
+    }.bind(this);
   }
 
-  /**
-   * Handle the "GET" requests from HomeKit
-   * These are sent when HomeKit wants to know the current state of the accessory, for example, checking if a Light bulb is on.
-   *
-   * GET requests should return as fast as possbile. A long delay here will result in
-   * HomeKit being unresponsive and a bad user experience in general.
-   *
-   * If your device takes time to respond you should update the status of your device
-   * asynchronously instead using the `updateCharacteristic` method instead.
-
-   * @example
-   * this.service.updateCharacteristic(this.platform.Characteristic.On, true)
-   */
-  async getOn(): Promise<CharacteristicValue> {
-    // implement your own code to check if the device is on
-    const isOn = this.exampleStates.On;
-
-    this.platform.log.debug('Get Characteristic On ->', isOn);
-
-    // if you need to return an error to show the device as "Not Responding" in the Home app:
-    // throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
-
-    return isOn;
+  lightSensorBounds(dataFunction: () => number): () => number{
+    return () => Math.min(Math.max(dataFunction(), 0.1), 100000);
   }
-
-  /**
-   * Handle "SET" requests from HomeKit
-   * These are sent when the user changes the state of an accessory, for example, changing the Brightness
-   */
-  async setBrightness(value: CharacteristicValue) {
-    // implement your own code to set the brightness
-    this.exampleStates.Brightness = value as number;
-
-    this.platform.log.debug('Set Characteristic Brightness -> ', value);
-  }
-
 }

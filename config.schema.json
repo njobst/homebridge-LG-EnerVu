@@ -1,16 +1,181 @@
 {
-  "pluginAlias": "ExampleHomebridgePlugin",
+  "pluginAlias": "LgEnerVu",
   "pluginType": "platform",
+  "headerDisplay": "Homebridge plugin for LG EnerVu",
+  "footerDisplay": "For a detailed description, see the [wiki](https://github.com/njobst/homebridge-LG-EnerVu)",
   "singular": true,
   "schema": {
     "type": "object",
     "properties": {
       "name": {
         "title": "Name",
+        "description": "Plugin name as displayed in the homebridge log",
         "type": "string",
         "required": true,
-        "default": "Example Dynamic Platform"
+        "default": "LG EnerVu"
+      },
+      "user": {
+        "title": "LG EnerVu credentials",
+        "type": "object",
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string",
+            "format": "email",
+            "required": true,
+            "placeholder": "email@domain.com"
+          },
+          "password": {
+            "title": "Password",
+            "type": "string",
+            "required": true,
+            "placeholder": "password"
+          }
+        }
+      },
+      "updateMotionSensor": {
+        "title": "Trigger motion sensor on data update",
+        "description": "Turn off to disable motion sensor, eg when using the Eve App for automation",
+        "type": "boolean",
+        "default": true
+      },
+      "batterySoc": {
+        "title": "Battery State of Charge",
+        "description": "Displayed via the lux reading of a light sensor & battery status of all accessories",
+        "type": "boolean",
+        "default": true
+      },
+      "pvPower": {
+        "title": "Photovoltaic Power Generation",
+        "description": "Power via the lux reading of a light sensor",
+        "type": "boolean",
+        "default": true
+      },
+      "loadPower": {
+        "title": "Load power consumption",
+        "description": "Power via the lux reading of a light sensor",
+        "type": "boolean",
+        "default": true
+      },
+      "batteryPower": {
+        "title": "Battery Charge/ Discharge Power",
+        "description": "Power via the lux reading of a light sensor & switches indicating energy flow direction",
+        "type": "boolean",
+        "default": true
+      },
+      "gridPower": {
+        "title": "Power Exchange with Grid",
+        "description": "Power via the lux reading of a light sensor & switches indicating energy flow direction",
+        "type": "boolean",
+        "default": true
+      },
+      "refreshTimeInMinutes": {
+        "title": "Refresh time",
+        "description": "Frequency for data updates in minutes",
+        "type": "number",
+        "default": 1,
+        "placeholder": 1,
+        "minimum": 1,
+        "maximum": 5
+      },      
+      "latestDataForPower": {
+        "title": "Use only latest data for power",
+        "description": "Turn off to use the average power over the last minute instead of only the newest data point",
+        "type": "boolean",
+        "default": true
+      },          
+
+      "language": {
+        "title": "Language",
+        "description": "Sent to LG during web login",
+        "type": "string",
+        "default": "de-DE"
+      },          
+      "userAgent": {
+        "title": "User Agent",
+        "description": "Sent to LG during web login",
+        "type": "string",
+        "default": 
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"
+      },      
+      "sessionData": {
+        "type": "object",
+        "properties": {
+          "Cookie": {
+            "description": "Autofilled after first Login or manually set a Cookie for a active session",
+            "type": "string",
+            "default": ""
+          },
+          "system_id": {
+            "description": "Autofilled after first Login or manually set your system_id",
+            "type": "string",
+            "default": ""
+          },
+          "ess_id": {
+            "description": "Autofilled after first Login or manually set your ess_id",
+            "type": "string",
+            "default": ""
+          }
+        }
       }
+
     }
-  }
+  },
+  "form": [
+    "name",
+    {
+      "type": "fieldset",
+      "expandable": false,
+      "title": "Login",
+      "items": [
+        {
+          "type": "flex",
+          "flex-flow": "row wrap",
+          "items": [
+            {
+              "type": "flex",
+              "flex-flow": "column",
+              "items": [
+                "user.email"
+              ]
+            },
+            {
+              "type": "flex",
+              "flex-flow": "column",
+              "items": [
+                {
+                  "key": "user.password",
+                  "type": "password"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "fieldset",
+      "expandable": true,
+      "title": "Components",
+      "description": "Enable/ Disable individual Services. Note: Only switches show up in the home summary",
+      "items": [
+        "updateMotionSensor",
+        "batterySoc",
+        "pvPower",
+        "loadPower",
+        "batteryPower",
+        "gridPower"
+      ]
+    },    {
+      "type": "fieldset",
+      "expandable": true,
+      "title": "Additional Settings",
+      "items": [
+        "refreshTimeInMinutes",
+        "latestDataForPower",
+        "language",
+        "userAgent"
+      ]
+    }
+  ]
 }

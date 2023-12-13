@@ -1,0 +1,50 @@
+JSESSIONID=F3741FC95B43C2004B1CF3D4E2789376.ess_8080_10; Path=/; HttpOnly, AWSELB=53C705991EFA3A9H61A13C8E8DF796E2F64AED685C02FE9A66488DF243ABAFFEDBF1D544037D1A4419D3D2AB31415F1DA974E9CFE654P44DA2414829472A7123909E6FE68E;PATH=/;MAX-AGE=1800, AWSELBCORS=53C705991EFA3A9F61A13C8E8DF796E2F64AED685C02FE9A66488DF243ABAFFEDBF1D544037D1A4419D3D2AB31415F1DA974E9CFE654D44DA2414829472A7123909E6FE68E;PATH=/;MAX-AGE=1800;SECURE;SAMESITE=None
+
+JSESSIONID=F3741FC95B43C2004B1CF3D4E2789376.ess_8080_10; lang=de; country=DE; ctCode=DE; AWSELB=53C705991EFA3A9H61A13C8E8DF796E2F64AED685C02FE9A66488DF243ABAFFEDBF1D544037D1A4419D3D2AB31415F1DA974E9CFE654P44DA2414829472A7123909E6FE68E; AWSELBCORS=53C705991EFA3A9F61A13C8E8DF796E2F64AED685C02FE9A66488DF243ABAFFEDBF1D544037D1A4419D3D2AB31415F1DA974E9CFE654D44DA2414829472A7123909E6FE68E; enervuCookieCompliance=on
+
+var timestampG = timestampG || "9999999999";
+var signatureG = signatureG || "whoWouldEvenBotherToReadThis1gh+yM0XvRgIKik=";
+system_id='1234'
+ess_id='5678'
+email='test@test.com'
+
+<!-- Excerpt from a valid SystemInfo response -->
+
+<div class="site_i ess">
+    <strong class="systemName">LG ESS</strong>
+</div>
+
+    
+    <div class="item-one owner_ess item-input" id="essInfoItem">
+    <div class="title-zone">
+        <div class="wrap">
+            <div>
+                <div style="width: 100%; position: relative;">
+                    <span class="tit">ESS  ExampleABC</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="content-zone type_de" id="ess_content-zone">
+        <div class="left-con">
+            <div class="left_mt0 line_net">
+                <div class="site_i">
+                    <strong class="systemName">PMS S/W Ver.</strong>
+                    <p class="cont"><span class="systemData">12.34.5678</span></p>
+                </div>
+                <div class="site_i">
+                    <strong class="systemName">PMS H/W Ver.</strong>
+                    <p class="cont"><span class="systemData">Rev 1.0</span></p>
+                </div>
+                <div class="site_i">
+                <strong class="systemName">PCS S/W Ver.</strong>
+                    <p class="cont"><span class=systemData>LG 12.34.56.78 R901 2.345.6</span></p>
+                </div>
+                <div class="site_i">
+                    <strong class="systemName">PCS H/W Ver.</strong>
+                    <p class="cont"><span class="systemData"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,191 +1,100 @@
 <p align="center">
 
-<img src="https://github.com/homebridge/branding/raw/latest/logos/homebridge-wordmark-logo-vertical.png" width="150">
+<img src="Homebridge_x_ESS.png" width="400">
 
 </p>
 
 <span align="center">
 
-# Homebridge Platform Plugin Template
+# Homebridge LG EnerVu
+[![Downloads](https://img.shields.io/npm/dt/homebridge-lg-enervu)](https://www.npmjs.com/package/homebridge-lg-enervu)
+[![Version](https://img.shields.io/npm/v/homebridge-lg-enervu)](https://www.npmjs.com/package/homebridge-lg-enervu)
 
 </span>
 
-This is a template Homebridge dynamic platform plugin and can be used as a base to help you get started developing your own plugin.
+[Homebridge](https://github.com/nfarina/homebridge) plugin to enable home automation based on 
+[LG EnerVu](https://enervu.lg-ess.com/v2/homeowner/index.do) data.
 
-This template should be used in conjunction with the [developer documentation](https://developers.homebridge.io/). A full list of all supported service types, and their characteristics is available on this site.
+## Introduction
 
-### Clone As Template
+As LG doesn't offer an official API, this Plugin creates a web session to access the ESS data, similar to logging in on your browser. The cloud data is updated every 60 seconds by the ESS with data for the previous minute. You can chose to select data for the last ten seconds or the whole minute. The upload and processing time on LG's servers result in a delay between 25 to 85 seconds from actual change to it being reflected in Homekit.\
+**Disclaimer**: This plugin is not endorsed by LG. It aims to mimic the communication between your browser and the server during an actual session, but I don't take any responsibility for your account being banned as a result of using this plugin. I do however use this myself and have not had any issues.
 
-Click the link below to create a new GitHub Repository using this template, or click the *Use This Template* button above.
+## Installation
 
-<span align="center">
+Make sure you can access your [ESS data on the web](https://enervu.lg-ess.com/v2/homeowner/index.do) using your email and password.
+Then install the Homebridge LG EnerVu plugin through Homebridge Config UI X or manually by:
+  ```
+  $ sudo npm -g i homebridge-lg-enervu
+  ```
 
-### [Create New Repository From Template](https://github.com/homebridge/homebridge-plugin-template/generate)
+To update Homebridge LG EnerVu:, simply issue another `sudo npm -g i homebridge-lg-enervu@latest`.
 
-</span>
+## Configuration
 
-### Setup Development Environment
+It is highly recommended that you use Homebridge Config UI X and configure this plugin, using your email and password. Alternatively, you can edit and add the following configuration inside "platforms" in your config.json file. If you don't want to use your credentials, see [here](#session-data). Below you can find the minimum required config.
 
-To develop Homebridge plugins you must have Node.js 18 or later installed, and a modern code editor such as [VS Code](https://code.visualstudio.com/). This plugin template uses [TypeScript](https://www.typescriptlang.org/) to make development easier and comes with pre-configured settings for [VS Code](https://code.visualstudio.com/) and ESLint. If you are using VS Code install these extensions:
+### Base Config
 
-- [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
-
-### Install Development Dependencies
-
-Using a terminal, navigate to the project folder and run this command to install the development dependencies:
-
-```shell
-$ npm install
-```
-
-### Update package.json
-
-Open the [`package.json`](./package.json) and change the following attributes:
-
-- `name` - this should be prefixed with `homebridge-` or `@username/homebridge-`, is case-sensitive, and contains no spaces nor special characters apart from a dash `-`
-- `displayName` - this is the "nice" name displayed in the Homebridge UI
-- `repository.url` - Link to your GitHub repo
-- `bugs.url` - Link to your GitHub repo issues page
-
-When you are ready to publish the plugin you should set `private` to false, or remove the attribute entirely.
-
-### Update Plugin Defaults
-
-Open the [`src/settings.ts`](./src/settings.ts) file and change the default values:
-
-- `PLATFORM_NAME` - Set this to be the name of your platform. This is the name of the platform that users will use to register the plugin in the Homebridge `config.json`.
-- `PLUGIN_NAME` - Set this to be the same name you set in the [`package.json`](./package.json) file. 
-
-Open the [`config.schema.json`](./config.schema.json) file and change the following attribute:
-
-- `pluginAlias` - set this to match the `PLATFORM_NAME` you defined in the previous step.
-
-### Build Plugin
-
-TypeScript needs to be compiled into JavaScript before it can run. The following command will compile the contents of your [`src`](./src) directory and put the resulting code into the `dist` folder.
-
-```shell
-$ npm run build
-```
-
-### Link To Homebridge
-
-Run this command so your global installation of Homebridge can discover the plugin in your development environment:
-
-```shell
-$ npm link
-```
-
-You can now start Homebridge, use the `-D` flag, so you can see debug log messages in your plugin:
-
-```shell
-$ homebridge -D
-```
-
-### Watch For Changes and Build Automatically
-
-If you want to have your code compile automatically as you make changes, and restart Homebridge automatically between changes, you first need to add your plugin as a platform in `~/.homebridge/config.json`:
-```
-{
-...
+```json
     "platforms": [
         {
-            "name": "Config",
-            "port": 8581,
-            "platform": "config"
-        },
-        {
-            "name": "<PLUGIN_NAME>",
-            //... any other options, as listed in config.schema.json ...
-            "platform": "<PLATFORM_NAME>"
+            "name": "LG EnerVu",
+            "user": {
+                "email": "your@email",
+                "password": "password"
+            },
+            "platform": "LgEnerVu"
         }
     ]
-}
 ```
 
-and then you can run:
-
-```shell
-$ npm run watch
+### Optional Parameters
+Below are the optional parameters with their default settings if not specified. 
+```json
+        {
+            "updateMotionSensor": true,
+            "batterySoc": true,
+            "pvPower": true,
+            "loadPower": true,
+            "batteryPower": true,
+            "gridPower": true,
+            "refreshTimeInMinutes": 1,
+            "latestDataForPower": true,
+            "language": "de-DE",
+            "userAgent": 
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
+            "sessionData": {
+                "Cookie": "JSESSIONID=toBeFilled; lang=de; country=DE; ctCode=DE; 
+                    AWSELB=toBeFilled; AWSELBCORS=toBeFilled; enervuCookieCompliance=on",
+                "system_id": "toBeFilled",
+                "ess_id": "toBeFilled"
+            },
+        }
 ```
+| Option                       | Default                      | Explanation|
+| ---------------------------- | ---------------------------- |  --------------------------------------------------------|
+| `updateMotionSensor`         | true                         | Motion sensor that is triggered whenever new data is available, based on the refresh time settings and your ESS updating the cloud. Turn off to not create a motion sensor, e.g. when using the Eve App for automation|
+| `batterySoc`                 | true                         | Current battery level in percent, displayed via the lux reading of a light sensor for automation & battery status of all accessories. Disable to not create the light sensor and not show battery level.|
+| `pvPower`                    | true                         | The power produced by the PV system in Watts, displayed via the lux reading of a light sensor. Disable to not create the light sensor.|
+| `loadPower`                  | true                         | The power consumed by the load in Watts, displayed via the lux reading of a light sensor. Disable to not create the light sensor.|
+| `batteryPower`               | true                         | The charging or discharging power of your battery in Watts, displayed via the lux reading of a light sensor & two switches turning on when charging/ discharging. Disable to not create the accessories.|
+| `gridPower`                  | true                         | The power exchange with the grid in Watts, displayed via the lux reading of a light sensor & two switches turning on when buying/selling electricity. Disable to not create the accessories.|
+| `refreshTimeInMinutes`       | 1   [Range: 1-5]             | Time in Minutes between updates. Restricted by ESS data updates (once per Minute) and server timeout (≈ 5 Minutes)|
+| `latestDataForPower`       | true             | The ESS sends 6 blocks of data, each with the average values for 10 seconds of the last minute. By default, the plugin picks the latest data, i.e. the average value from hh:mm:50 to hh:mm:60. If you prefer the average value of the last minute, set this to false. |
+| `language`                   |"de-De" (=German-Germany)     | Sets the language for the site. Match this to your usual settings to have a consistent login history. Check [here](https://www.fincher.org/Utilities/CountryLanguageList.shtml) for a list of country codes. |
+| `userAgent`                  | "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15" (=Safari on MacOS)| Your default user agent (browser signature) when logging into EnerVu. Match this to your usual settings to have a consistent login history.|
+| `sessionData`                |     undefined                | See below for more details. When sessionData is provided, all of Cookie, system_id and ess_id must be filled to create a valid config|
 
-This will launch an instance of Homebridge in debug mode which will restart every time you make a change to the source code. It will load the config stored in the default location under `~/.homebridge`. You may need to stop other running instances of Homebridge while using this command to prevent conflicts. You can adjust the Homebridge startup command in the [`nodemon.json`](./nodemon.json) file.
+When disabling accessories after they have been created before, you might need to delete the LG EnerVu device from Homebridge cache inside settings for them to immediately disappear.
 
-### Customise Plugin
+#### Session data
 
-You can now start customising the plugin template to suit your requirements.
+This data automatically created on successful login to avoid needing to log in again after server restarts. On first launch, the plugin will use the  session data to latch onto the session and ignore the provided username and password. This can also be used in case you don't want to supply your email and password but only a temporary cookie. First log into LG EnerVu and open developer tools. Both systemId and essId can be found by searching for them in the response of "main.do>XHRs>dashboard.do". Replace the fields inside Cookie with the values from your session. The existing session will be refreshed by the plugin indefinitely. Note that a session is closed by the server on inactivity, e.g. when a network error occurs, and these steps need to be repeated if no valid credentials are provided. To pass the config check, simply fill username and password with non-empty strings, e.g. "a_at_b.com".
 
-- [`src/platform.ts`](./src/platform.ts) - this is where your device setup and discovery should go.
-- [`src/platformAccessory.ts`](./src/platformAccessory.ts) - this is where your accessory control logic should go, you can rename or create multiple instances of this file for each accessory type you need to implement as part of your platform plugin. You can refer to the [developer documentation](https://developers.homebridge.io/) to see what characteristics you need to implement for each service type.
-- [`config.schema.json`](./config.schema.json) - update the config schema to match the config you expect from the user. See the [Plugin Config Schema Documentation](https://developers.homebridge.io/#/config-schema).
+## Getting started & creating Automations
 
-### Versioning Your Plugin
+After adding the bridge, you will only see one tile. Opening it and accessing its settings, you can find all configured devices. Tapping them and deleting the default name reveals their actual function & you can name them accordingly.\
+Automations can be created using shortcuts inside your home app or with the help of the Eve App. If you prefer to use shortcuts inside the home app, create an automation triggered by the motion sensor and then scroll to the bottom to find "Convert to shortcut". Here you can create conditions against the light sensors, specifying exact trigger values.
+You can find a tutorial on how to use the Eve App for automation based on light sensors [here](https://github.com/AllMightySauron/homebride-solaxcloud-api). You can disable the update switch when going this route.\
 
-Given a version number `MAJOR`.`MINOR`.`PATCH`, such as `1.4.3`, increment the:
-
-1. **MAJOR** version when you make breaking changes to your plugin,
-2. **MINOR** version when you add functionality in a backwards compatible manner, and
-3. **PATCH** version when you make backwards compatible bug fixes.
-
-You can use the `npm version` command to help you with this:
-
-```shell
-# major update / breaking changes
-$ npm version major
-
-# minor update / new features
-$ npm version update
-
-# patch / bugfixes
-$ npm version patch
-```
-
-### Publish Package
-
-When you are ready to publish your plugin to [npm](https://www.npmjs.com/), make sure you have removed the `private` attribute from the [`package.json`](./package.json) file then run:
-
-```shell
-$ npm publish
-```
-
-If you are publishing a scoped plugin, i.e. `@username/homebridge-xxx` you will need to add `--access=public` to command the first time you publish.
-
-#### Publishing Beta Versions
-
-You can publish *beta* versions of your plugin for other users to test before you release it to everyone.
-
-```shell
-# create a new pre-release version (eg. 2.1.0-beta.1)
-$ npm version prepatch --preid beta
-
-# publish to @beta
-$ npm publish --tag=beta
-```
-
-Users can then install the  *beta* version by appending `@beta` to the install command, for example:
-
-```shell
-$ sudo npm install -g homebridge-example-plugin@beta
-```
-
-### Best Practices
-Consider creating your plugin with the [Homebridge Verified](https://github.com/homebridge/verified) criteria in mind. This will help you to create a plugin that is easy to use and works well with Homebridge.
-You can then submit your plugin to the Homebridge Verified list for review.
-The most up-to-date criteria can be found [here](https://github.com/homebridge/verified#requirements).
-For reference, the current criteria are:
-
-- The plugin must successfully install.
-- The plugin must implement the [Homebridge Plugin Settings GUI](https://github.com/oznu/homebridge-config-ui-x/wiki/Developers:-Plugin-Settings-GUI).
-- The plugin must not start unless it is configured.
-- The plugin must not execute post-install scripts that modify the users' system in any way.
-- The plugin must not contain any analytics or calls that enable you to track the user.
-- The plugin must not throw unhandled exceptions, the plugin must catch and log its own errors.
-- The plugin must be published to npm and the source code available on GitHub.
-  - A GitHub release - with patch notes - should be created for every new version of your plugin.
-- The plugin must run on all [supported LTS versions of Node.js](https://github.com/homebridge/homebridge/wiki/How-To-Update-Node.js), at the time of writing this is Node.js v16 and v18.
-- The plugin must not require the user to run Homebridge in a TTY or with non-standard startup parameters, even for initial configuration.
-- If the plugin needs to write files to disk (cache, keys, etc.), it must store them inside the Homebridge storage directory.
-
-### Useful Links
-Note these links are here for help but are not supported/verified by the Homebridge team
-- [Custom Characteristics](https://github.com/homebridge/homebridge-plugin-template/issues/20)

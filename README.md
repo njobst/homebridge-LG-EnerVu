@@ -65,8 +65,7 @@ Below are the optional parameters with their default settings if not specified.
             "userAgent": 
                 "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
             "sessionData": {
-                "Cookie": "JSESSIONID=toBeFilled; lang=de; country=DE; ctCode=DE; 
-                    AWSELB=toBeFilled; AWSELBCORS=toBeFilled; enervuCookieCompliance=on",
+                "Cookie": "JSESSIONID=toBeFilled; lang=de; country=DE; ctCode=DE; AWSELB=toBeFilled; AWSELBCORS=toBeFilled; enervuCookieCompliance=on",
                 "system_id": "toBeFilled",
                 "ess_id": "toBeFilled"
             },
@@ -96,5 +95,5 @@ This data automatically created on successful login to avoid needing to log in a
 
 After adding the bridge, you will only see one tile. Opening it and accessing its settings, you can find all configured devices. Tapping them and deleting the default name reveals their actual function & you can name them accordingly.\
 Automations can be created using shortcuts inside your home app or with the help of the Eve App. If you prefer to use shortcuts inside the home app, create an automation triggered by the motion sensor and then scroll to the bottom to find "Convert to shortcut". Here you can create conditions against the light sensors, specifying exact trigger values.
-You can find a tutorial on how to use the Eve App for automation based on light sensors [here](https://github.com/AllMightySauron/homebride-solaxcloud-api). You can disable the update switch when going this route.\
+You can find a tutorial on how to use the Eve App for automation based on light sensors [here](https://github.com/AllMightySauron/homebride-solaxcloud-api). You can disable the update switch when going this route.
 

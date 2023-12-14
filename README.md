@@ -1,6 +1,6 @@
 <p align="center">
 
-<img src="Homebridge_x_ESS.png" width="400">
+<img src="Homebridge_x_enerVu.svg" width="400">
 
 </p>
 

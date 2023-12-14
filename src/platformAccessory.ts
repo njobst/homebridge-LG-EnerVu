@@ -131,7 +131,7 @@ export class LgEnerVuPlatformAccessory {
   getWebApiDataByType<T>(property: nestedByType<runningDataPoint, T>): () => T{
     return function(this: LgEnerVuPlatformAccessory): T{
       if (this.api.state < 2){
-        this.log.info(`Data for ${property} not ready.`);
+        this.log.debug(`Data for ${property} not ready.`);
         throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
       }
 

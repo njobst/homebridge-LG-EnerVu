@@ -288,34 +288,41 @@ export class LgEnerVuApi extends EventEmitter {
         },
         method: 'POST',
       });
-      let energyflowInfoJson = await response.json() as RunningData;
-      if (energyflowInfoJson.energyFlowList === undefined){
-        let message = 'Failed to read result message';
-        if (energyflowInfoJson.resultMessage !== undefined) {
-          message = energyflowInfoJson.resultMessage;
-        }
-        throw new Error('Failed to read energyflow-info data. Message: ' + message);
-      }
-      if (this.data?.targetDate === energyflowInfoJson.energyFlowList[0]?.targetDate){
-        this.staleDataCycles += 1;
-        this.log.debug('Did not update data: Recieved existing data again.');
-        if (this.staleDataCycles >= 5){
-          this.log.warn(`No data updates from the ESS for ${this.staleDataCycles} cycles. You might want to check its connection.`);
-        }
-      } else{
-        if (!this.config.latestDataForPower){
-          energyflowInfoJson = this.averageData(energyflowInfoJson);
-        }
-        this.data = energyflowInfoJson.energyFlowList[0]; // pick the newest available data
-        this.staleDataCycles = 0;
-        this.emit('dataUpdate');
-        this.log.debug('Updated data: '+this.data?.targetDate);
-      }
-      this.state = state.Active;
+      const energyflowInfoJson = await response.json() as RunningData;
+      this.updateData(energyflowInfoJson);
+
     } catch (error) {
       this.log.error('Error during update process: '+ error);
       this.state = state.Error;
       return;
+    }
+  }
+
+  updateData(dataJson: RunningData): void {
+    if (dataJson.energyFlowList === undefined){
+      let message = 'Failed to read result message';
+      if (dataJson.resultMessage !== undefined) {
+        message = dataJson.resultMessage;
+      }
+      throw new Error('Failed to read energyflow-info data. Message: ' + message);
+    }
+    if (dataJson.energyFlowList === null){
+      this.log.info('No data available on server');
+    } else if (this.data?.targetDate === dataJson.energyFlowList[0]?.targetDate){
+      this.staleDataCycles += 1;
+      this.log.debug('Did not update data: Recieved existing data again.');
+      if (((this.staleDataCycles-4)%5)-1 === 0){ // every 5 minutes except 0
+        this.log.warn(`No data updates from the ESS for ${this.staleDataCycles} cycles`);
+      }
+    } else{
+      if (!this.config.latestDataForPower){
+        dataJson = this.averageData(dataJson);
+      }
+      this.data = dataJson.energyFlowList[0]; // pick the newest available data
+      this.staleDataCycles = 0;
+      this.emit('dataUpdate');
+      this.state = state.Active;
+      this.log.debug('Updated data: '+this.data?.targetDate);
     }
   }
 
@@ -381,20 +388,8 @@ export class LgEnerVuApi extends EventEmitter {
         },
         method: 'POST',
       });
-      let energyflowInfoJson = await response.json();
-      if (energyflowInfoJson.energyFlowList === undefined){
-        let message = 'Failed to read result message';
-        if (energyflowInfoJson.resultMessage !== undefined) {
-          message = energyflowInfoJson.resultMessage;
-        }
-        throw new Error('Failed to open energyflow-info session. Message: ' + message);
-      }
-      if (!this.config.latestDataForPower){
-        energyflowInfoJson = this.averageData(energyflowInfoJson);
-      }
-      this.data = energyflowInfoJson.energyFlowList[0] as runningDataPoint;
-      this.state = state.Active;
-      this.log.debug('Updated data: '+this.data?.targetDate);
+      const energyflowInfoJson = await response.json();
+      this.updateData(energyflowInfoJson);
       this.cyclesSinceRefresh = 0;
 
     } catch (error) {
@@ -475,8 +470,8 @@ export class LgEnerVuApi extends EventEmitter {
   }
 
   async loop(){
-    // Always query 25 seconds after a minute rolls over - most reliable for me
-    await setTimeout((85-(Date.now()/1000%60))*1000);
+    // Always query 30 seconds after a minute rolls over - most reliable for me
+    await setTimeout((90-(Date.now()/1000%60))*1000);
     const interval = setInterval(() =>{
       switch(this.state){
         case state.badLogin:
@@ -492,11 +487,12 @@ export class LgEnerVuApi extends EventEmitter {
     }, this.config.refreshTimeInMinutes*60000);
   }
 
-  _injectTestSetup(cookie = '', system_id = '', ess_id = '', refreshTime = 1, cyclesSinceRefresh = 0): void {
+  _injectTestSetup(cookie = '', system_id = '', ess_id = '', refreshTime = 1, cyclesSinceRefresh = 0, staleDataCycles = 0): void {
     this.config.sessionData.Cookie = cookie;
     this.config.sessionData.system_id = system_id;
     this.config.sessionData.ess_id = ess_id;
     this.config.refreshTimeInMinutes = refreshTime;
+    this.staleDataCycles = staleDataCycles;
     this.cyclesSinceRefresh = cyclesSinceRefresh;
   }
 

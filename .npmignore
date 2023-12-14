@@ -15,6 +15,9 @@ tsconfig.json
 # vscode
 .vscode
 
+# jest
+jest.config.ts
+
 # nodemon
 nodemon.json
 

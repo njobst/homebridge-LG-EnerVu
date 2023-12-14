@@ -10,6 +10,8 @@ describe('LgEnerVuApi', () => {
     mockedFetch.mockReset();
     errorMessage = '';
     api._injectTestSetup();
+    api.state = 0; // starting
+    api.data = {} as runningDataPoint;
   });
 
   const config = new LgEnerVuPlatformConfig();
@@ -177,7 +179,7 @@ describe('LgEnerVuApi', () => {
       expect(mockedFetch).toHaveBeenCalledTimes(2);
       expect(mockedFetch.mock.calls[1][1]?.headers!['START_POLL']).toBe('Y');
       expect(errorMessage).toBe(
-        'Error during refresh process: Error: Failed to open energyflow-info session. Message: Failed to read result message');
+        'Error during refresh process: Error: Failed to read energyflow-info data. Message: Failed to read result message');
       expect(api.state).toBe(1);
     });
 
@@ -190,7 +192,7 @@ describe('LgEnerVuApi', () => {
 
       expect(mockedFetch).toHaveBeenCalledTimes(2);
       expect(errorMessage).toBe(
-        'Error during refresh process: Error: Failed to open energyflow-info session. Message: X');
+        'Error during refresh process: Error: Failed to read energyflow-info data. Message: X');
       expect(api.state).toBe(1);
     });
 
@@ -227,7 +229,7 @@ describe('LgEnerVuApi', () => {
     });
 
     it('use cookie & return error on dashboard when refresh dashboard load fails', async () => {
-      api._injectTestSetup(cookieResponse, undefined, undefined, undefined, 0);
+      api._injectTestSetup(cookieResponse);
       mockedFetch.mockImplementationOnce(jest.fn(() => Promise.resolve({ json: () => Promise.resolve({})})) as jest.Mock );
 
       await api.update();

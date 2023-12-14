@@ -17,7 +17,7 @@
 
 ## Introduction
 
-As LG doesn't offer an official API, this Plugin creates a web session to access the ESS data, similar to logging in on your browser. The cloud data is updated every 60 seconds by the ESS with data for the previous minute. You can chose to select data for the last ten seconds or the whole minute. The upload and processing time on LG's servers result in a delay between 25 to 85 seconds from actual change to it being reflected in Homekit.\
+As LG doesn't offer an official API, this Plugin creates a web session to access the ESS data, similar to logging in on your browser. The cloud data is updated every 60 seconds by the ESS with data for the previous minute. You can chose to select data for the last ten seconds or the average for the whole minute. The upload timing and processing time on LG's servers result in a delay between 30 to 90 seconds from actual change to it being reflected in Homekit.\
 **Disclaimer**: This plugin is not endorsed by LG. It aims to mimic the communication between your browser and the server during an actual session, but I don't take any responsibility for your account being banned as a result of using this plugin. I do however use this myself and have not had any issues.
 
 ## Installation
@@ -94,6 +94,5 @@ This data automatically created on successful login to avoid needing to log in a
 ## Getting started & creating Automations
 
 After adding the bridge, you will only see one tile. Opening it and accessing its settings, you can find all configured devices. Tapping them and deleting the default name reveals their actual function & you can name them accordingly.\
-Automations can be created using shortcuts inside your home app or with the help of the Eve App. If you prefer to use shortcuts inside the home app, create an automation triggered by the motion sensor and then scroll to the bottom to find "Convert to shortcut". Here you can create conditions against the light sensors, specifying exact trigger values.
-You can find a tutorial on how to use the Eve App for automation based on light sensors [here](https://github.com/AllMightySauron/homebride-solaxcloud-api). You can disable the update switch when going this route.
-
+Automations can be created using shortcuts inside your home app or with the help of the Eve App. If you prefer to use shortcuts inside the home app, create an automation triggered by the motion sensor and then scroll to the bottom to find "Convert to shortcut". Here you can create conditions against the light sensors, specifying exact trigger values.\
+You can find a tutorial on how to use the Eve App for automation [here](https://github.com/AllMightySauron/homebride-solaxcloud-api).

@@ -93,7 +93,7 @@ describe('LgEnerVuApi', () => {
       expect(api.state).toBe(1);
       expect(mockedFetch).toHaveBeenCalledTimes(3);
       expect(mockedFetch.mock.calls[2][0]).toBe(
-        'https://enervu.lg-ess.com/v2/homeowner/account/login?sid=emp%253B1701370721248%253B000044611');
+        'https://eu.enervu.lg-ess.com/v2/homeowner/account/login?sid=emp%253B1701370721248%253B000044611');
       expect(errorMessage).toBe('Error during login process: Error: No valid Cookie was returned from Login');
     });
 
@@ -131,7 +131,7 @@ describe('LgEnerVuApi', () => {
       expect(api.state).toBe(1);
       expect(mockedFetch).toHaveBeenCalledTimes(5);
       expect(api._returnTestData()[1]).toBe('1234');
-      expect(mockedFetch.mock.calls[4][0]).toBe('https://enervu.lg-ess.com/v2/homeowner/systems/1234/dashboard.do?today='+yyyy+mm+dd);
+      expect(mockedFetch.mock.calls[4][0]).toBe('https://eu.enervu.lg-ess.com/v2/homeowner/systems/1234/dashboard.do?today='+yyyy+mm+dd);
     });
 
     it('use ess ID & return status Active on Success', async () => {
@@ -281,7 +281,7 @@ describe('LgEnerVuApi', () => {
       await api.getSystemInfo();
 
       expect(mockedExtractSystemInfo).toHaveBeenCalledTimes(1);
-      expect(mockedFetch.mock.calls[0][0]).toBe('https://enervu.lg-ess.com/v2/homeowner/systems/1234/system-info.do');
+      expect(mockedFetch.mock.calls[0][0]).toBe('https://eu.enervu.lg-ess.com/v2/homeowner/systems/1234/system-info.do');
       expect(mockedFetch).toHaveBeenCalledTimes(1);
       expect(mockedExtractSystemInfo.mock.calls[0][0]).toBe(textResponse);
       expect(api.systemInfo?.systemName).toBe('Test');

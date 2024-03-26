@@ -7,6 +7,7 @@
 <span align="center">
 
 # Homebridge LG EnerVu
+[![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
 [![Downloads](https://img.shields.io/npm/dt/homebridge-lg-enervu)](https://www.npmjs.com/package/homebridge-lg-enervu)
 [![Version](https://img.shields.io/npm/v/homebridge-lg-enervu)](https://www.npmjs.com/package/homebridge-lg-enervu)
 
@@ -28,11 +29,11 @@ Then install the Homebridge LG EnerVu plugin through Homebridge Config UI X or m
   $ sudo npm -g i homebridge-lg-enervu
   ```
 
-To update Homebridge LG EnerVu:, simply issue another `sudo npm -g i homebridge-lg-enervu@latest`.
+To update Homebridge LG EnerVu, simply issue another `sudo npm -g i homebridge-lg-enervu@latest`.
 
 ## Configuration
 
-It is highly recommended that you use Homebridge Config UI X and configure this plugin, using your email and password. Alternatively, you can edit and add the following configuration inside "platforms" in your config.json file. If you don't want to use your credentials, see [here](#session-data). Below you can find the minimum required config.
+It is highly recommended that you use Homebridge Config UI X and configure this plugin using your email and password. Alternatively, you can edit and add the following configuration inside "platforms" in your config.json file. If you don't want to use your credentials, see [here](#session-data). Below you can find the minimum required config.
 
 ### Base Config
 
@@ -89,7 +90,7 @@ When disabling accessories after they have been created before, you might need t
 
 #### Session data
 
-This data automatically created on successful login to avoid needing to log in again after server restarts. On first launch, the plugin will use the  session data to latch onto the session and ignore the provided username and password. This can also be used in case you don't want to supply your email and password but only a temporary cookie. First log into LG EnerVu and open developer tools. Both systemId and essId can be found by searching for them in the response of "main.do>XHRs>dashboard.do". Replace the fields inside Cookie with the values from your session. The existing session will be refreshed by the plugin indefinitely. Note that a session is closed by the server on inactivity, e.g. when a network error occurs, and these steps need to be repeated if no valid credentials are provided. To pass the config check, simply fill username and password with non-empty strings, e.g. "a_at_b.com".
+This data is automatically created on successful login to avoid needing to log in again after server restarts. On first launch, the plugin will use the  session data to latch onto the session and ignore the provided username and password. This can also be used in case you don't want to supply your email and password but only a temporary cookie. First log into LG EnerVu and open developer tools. Both systemId and essId can be found by searching for them in the response of "main.do>XHRs>dashboard.do". Replace the fields inside Cookie with the values from your session. The existing session will be refreshed by the plugin indefinitely. Note that a session is closed by the server on inactivity, e.g. when a network error occurs, and these steps need to be repeated if no valid credentials are provided. To pass the config check, simply fill username and password with non-empty strings, e.g. "a_at_b.com".
 
 ## Getting started & creating Automations
 

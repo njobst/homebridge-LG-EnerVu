@@ -90,7 +90,7 @@ export class LgEnerVuApi extends EventEmitter {
       const loginSessionID = json.account.loginSessionID.replaceAll(';', '%253B'); //these seem to get encoded twice :)
       this.log.debug('Login Session ID: '+loginSessionID);
 
-      response = await fetch('https://enervu.lg-ess.com/v2/homeowner/account/login?sid='+loginSessionID, {
+      response = await fetch('https://eu.enervu.lg-ess.com/v2/homeowner/account/login?sid='+loginSessionID, {
         'credentials':'include',
         'headers':{
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -116,7 +116,7 @@ export class LgEnerVuApi extends EventEmitter {
       this.config.sessionData.Cookie = jsessionid+'lang=de; country=DE; ctCode=DE; '+awselb+awselbcor+'enervuCookieCompliance=on';
       this.log.debug('Generated Cookie: '+this.config.sessionData.Cookie);
 
-      response = await fetch('https://enervu.lg-ess.com/v2/homeowner/main.do?page=dashboard', {
+      response = await fetch('https://eu.enervu.lg-ess.com/v2/homeowner/main.do?page=dashboard', {
         'cache': 'default',
         'credentials': 'include',
         'headers': {
@@ -143,7 +143,7 @@ export class LgEnerVuApi extends EventEmitter {
       const mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
       const yyyy = today.getFullYear();
       response = await fetch(
-        'https://enervu.lg-ess.com/v2/homeowner/systems/'+this.config.sessionData.system_id+'/dashboard.do?today='+yyyy+mm+dd, {
+        'https://eu.enervu.lg-ess.com/v2/homeowner/systems/'+this.config.sessionData.system_id+'/dashboard.do?today='+yyyy+mm+dd, {
           'cache': 'default',
           'credentials': 'include',
           'headers': {
@@ -158,7 +158,7 @@ export class LgEnerVuApi extends EventEmitter {
           'method': 'GET',
           'mode': 'cors',
           'redirect': 'follow',
-          'referrer': 'https://enervu.lg-ess.com/v2/homeowner/main.do?page=dashboard',
+          'referrer': 'https://eu.enervu.lg-ess.com/v2/homeowner/main.do?page=dashboard',
           'referrerPolicy': 'strict-origin-when-cross-origin',
         });
       const dashboardResponse = await response.text();
@@ -169,7 +169,7 @@ export class LgEnerVuApi extends EventEmitter {
         dashboardResponse.substring(dashboardResponse.search('ess_id')+8, dashboardResponse.search('ess_id')+12);
       this.log.debug('ESS ID: '+ this.config.sessionData.ess_id);
 
-      this.log.info('Logged in successfully');
+      this.log.info('Created new session');
 
     } catch (error) {
       this.log.error('Error during login process: '+ error);
@@ -189,22 +189,23 @@ export class LgEnerVuApi extends EventEmitter {
 
   async getSystemInfo(): Promise<void>{
     try {
-      const response = await fetch('https://enervu.lg-ess.com/v2/homeowner/systems/'+this.config.sessionData.system_id+'/system-info.do', {
-        'cache': 'default',
-        'credentials': 'include',
-        'headers': {
-          'Accept': 'text/html, */*; q=0.01',
-          'Accept-Language': this.config.language + ',' + this.config.language.slice(0, 2) + ';q=0.9',
-          'User-Agent': this.config.userAgent,
-          'X-Requested-With': 'XMLHttpRequest',
-          Cookie: this.config.sessionData.Cookie,
-        },
-        'method': 'GET',
-        'mode': 'cors',
-        'redirect': 'follow',
-        'referrer': 'https://enervu.lg-ess.com/v2/homeowner/main.do?page=systemInfo',
-        'referrerPolicy': 'strict-origin-when-cross-origin',
-      });
+      const response = await fetch(
+        'https://eu.enervu.lg-ess.com/v2/homeowner/systems/'+this.config.sessionData.system_id+'/system-info.do', {
+          'cache': 'default',
+          'credentials': 'include',
+          'headers': {
+            'Accept': 'text/html, */*; q=0.01',
+            'Accept-Language': this.config.language + ',' + this.config.language.slice(0, 2) + ';q=0.9',
+            'User-Agent': this.config.userAgent,
+            'X-Requested-With': 'XMLHttpRequest',
+            Cookie: this.config.sessionData.Cookie,
+          },
+          'method': 'GET',
+          'mode': 'cors',
+          'redirect': 'follow',
+          'referrer': 'https://eu.enervu.lg-ess.com/v2/homeowner/main.do?page=systemInfo',
+          'referrerPolicy': 'strict-origin-when-cross-origin',
+        });
       const systemInfoHtml = await response.text();
       this.systemInfo = this.extractSystemInfo(systemInfoHtml);
       this.log.debug('Updated SystemInfo');
@@ -267,7 +268,7 @@ export class LgEnerVuApi extends EventEmitter {
       return;
     }
     try {
-      const response = await fetch('https://enervu.lg-ess.com/v2/homeowner/systems/ess/energyflow-info', {
+      const response = await fetch('https://eu.enervu.lg-ess.com/v2/homeowner/systems/ess/energyflow-info', {
         body: 'system_id='+this.config.sessionData.system_id+'&ess_id='+this.config.sessionData.ess_id,
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -276,12 +277,12 @@ export class LgEnerVuApi extends EventEmitter {
           'Accept-Language': this.config.language + ',' + this.config.language.slice(0, 2) + ';q=0.9',
           'Accept-Encoding': 'gzip, deflate, br',
           'Sec-Fetch-Mode': 'cors',
-          Host: 'enervu.lg-ess.com',
-          Origin: 'https://enervu.lg-ess.com',
+          Host: 'eu.enervu.lg-ess.com',
+          Origin: 'https://eu.enervu.lg-ess.com',
           'Content-Length': '26',
           'User-Agent':
             this.config.userAgent,
-          Referer: 'https://enervu.lg-ess.com/v2/homeowner/main.do?page=dashboard',
+          Referer: 'https://eu.enervu.lg-ess.com/v2/homeowner/main.do?page=dashboard',
           Connection: 'keep-alive',
           'Sec-Fetch-Dest': 'empty',
           Cookie: this.config.sessionData.Cookie,
@@ -306,14 +307,13 @@ export class LgEnerVuApi extends EventEmitter {
       }
       throw new Error('Failed to read energyflow-info data. Message: ' + message);
     }
-    if (dataJson.energyFlowList === null){
-      this.log.info('No data available on server');
-    } else if (this.data?.targetDate === dataJson.energyFlowList[0]?.targetDate){
+    // last data transmission from ESS was >60min ago || data identical to previous data
+    if (dataJson.energyFlowList === null || this.data?.targetDate === dataJson.energyFlowList[0]?.targetDate){
       this.staleDataCycles += 1;
-      this.log.debug('Did not update data: Recieved existing data again.');
       if (((this.staleDataCycles-4)%5)-1 === 0){ // every 5 minutes except 0
         this.log.warn(`No data updates from the ESS for ${this.staleDataCycles} cycles`);
       }
+      this.log.debug(`Did not update data, data identical: ${this.data?.targetDate === dataJson.energyFlowList[0]?.targetDate}`);
     } else{
       if (!this.config.latestDataForPower){
         dataJson = this.averageData(dataJson);
@@ -345,7 +345,7 @@ export class LgEnerVuApi extends EventEmitter {
   async refresh(): Promise<void> {
     try {
       // Optional: Reload dashboard - pretend to reload the site
-      let response = await fetch('https://enervu.lg-ess.com/v2/homeowner/main.do?page=dashboard', {
+      let response = await fetch('https://eu.enervu.lg-ess.com/v2/homeowner/main.do?page=dashboard', {
         'cache': 'default',
         'credentials': 'include',
         'headers': {
@@ -367,7 +367,7 @@ export class LgEnerVuApi extends EventEmitter {
       this.log.debug('Extended session');
 
       // Initial request with Start_Poll header
-      response = await fetch('https://enervu.lg-ess.com/v2/homeowner/systems/ess/energyflow-info', {
+      response = await fetch('https://eu.enervu.lg-ess.com/v2/homeowner/systems/ess/energyflow-info', {
         body: 'system_id=5532&ess_id=4920',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -376,11 +376,11 @@ export class LgEnerVuApi extends EventEmitter {
           'Accept-Language': this.config.language + ',' + this.config.language.slice(0, 2) + ';q=0.9',
           'Accept-Encoding': 'gzip, deflate, br',
           'Sec-Fetch-Mode': 'cors',
-          Host: 'enervu.lg-ess.com',
-          Origin: 'https://enervu.lg-ess.com',
+          Host: 'eu.enervu.lg-ess.com',
+          Origin: 'https://eu.enervu.lg-ess.com.com',
           'Content-Length': '26',
           'User-Agent': this.config.userAgent,
-          Referer: 'https://enervu.lg-ess.com/v2/homeowner/main.do?page=dashboard',
+          Referer: 'https://eu.enervu.lg-ess.com/v2/homeowner/main.do?page=dashboard',
           Connection: 'keep-alive',
           'Sec-Fetch-Dest': 'empty',
           Cookie: this.config.sessionData.Cookie,
@@ -435,7 +435,7 @@ export class LgEnerVuApi extends EventEmitter {
           }
         }
       }
-      this.log.info('No or invalid session data stored. Starting with a new session.');
+      this.log.info('No session data stored. Starting with a new session.');
       return false;
     } catch (_) {
       this.log.info('No or invalid session data stored. Starting with a new session.');

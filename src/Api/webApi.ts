@@ -131,11 +131,16 @@ export class LgEnerVuApi extends EventEmitter {
         'referrer': 'https://de.lgaccount.com/',
         'referrerPolicy': 'strict-origin-when-cross-origin',
       });
-      const text = await response.text();
-      if (text.search('system_id') === -1){
+      const mainPageResponse = await response.text();
+      let baseOffset = mainPageResponse.search('system_id');
+      if (baseOffset === -1){
+        this.log.debug('Printing response: \n\n' + mainPageResponse.substring(0, 2000));
+        this.log.debug('Searching: {systemId= ' + mainPageResponse.search('{systemId='));
+
         throw new Error('Unexpected data in main landing page');
       }
-      this.config.sessionData.system_id = text.substring(text.search('system_id')+11, text.search('system_id')+15);
+      let endOffset = baseOffset + mainPageResponse.substring(baseOffset + 11, baseOffset+100).search('>') + 10;
+      this.config.sessionData.system_id = mainPageResponse.substring(baseOffset + 11, endOffset);
       this.log.debug('System ID: '+ this.config.sessionData.system_id);
 
       const today = new Date();
@@ -162,11 +167,13 @@ export class LgEnerVuApi extends EventEmitter {
           'referrerPolicy': 'strict-origin-when-cross-origin',
         });
       const dashboardResponse = await response.text();
-      if (dashboardResponse.search('ess_id') === -1){
+
+      baseOffset = dashboardResponse.search('ess_id');
+      if (baseOffset === -1){
         throw new Error('Unexpected data on dashboard');
       }
-      this.config.sessionData.ess_id =
-        dashboardResponse.substring(dashboardResponse.search('ess_id')+8, dashboardResponse.search('ess_id')+12);
+      endOffset = baseOffset + dashboardResponse.substring(baseOffset + 8, baseOffset+100).search('"') + 8;
+      this.config.sessionData.ess_id = dashboardResponse.substring(baseOffset + 8, endOffset);
       this.log.debug('ESS ID: '+ this.config.sessionData.ess_id);
 
       this.log.info('Created new session');

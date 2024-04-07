@@ -4,8 +4,11 @@ JSESSIONID=F3741FC95B43C2004B1CF3D4E2789376.ess_8080_10; lang=de; country=DE; ct
 
 var timestampG = timestampG || "9999999999";
 var signatureG = signatureG || "whoWouldEvenBotherToReadThis1gh+yM0XvRgIKik=";
-system_id='1234'
-ess_id='5678'
+"<div><span system_id='1234'>"+sysName+"</span></div>"
+var data = {
+                system_id:"1234",
+                ess_id:"5678"
+        };
 email='test@test.com'
 
 <!-- Excerpt from a valid SystemInfo response -->
